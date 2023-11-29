@@ -1,0 +1,22 @@
+cancer.cells <- subset(cancercombined, idents = "Epithelial")
+cancer.cells <- NormalizeData(cancer.cells)
+cancer.cells <- FindVariableFeatures(cancer.cells, selection.method = "vst", nfeatures = 2000)
+all.genes <- rownames(cancer.cells)
+cancer.cells <- ScaleData(cancer.cells, features = all.genes)
+cancer.cells <- RunPCA(cancer.cells, features = VariableFeatures(object = cancer.cells))
+cancer.cells <- FindNeighbors(cancer.cells, dims = 1:15)
+cancer.cells <- FindClusters(cancer.cells, resolution = 0.5)
+cancer.cells <- RunUMAP(cancer.cells, dims = 1:15)
+DimPlot(cancer.cells, reduction = "umap")
+DimPlot(csc_7,label = T,label.size = 7)->p
+ggsave("umap2.jpg",p,width = 10,height = 6,dpi = 300)
+VlnPlot(csc_7,features = c("CD44","SOX2","ALDH1A1","NANOG","POU5F1"),pt.size=0,ncol = 1)->p
+ggsave("vln.jpg",p,width = 6,height = 9,dpi = 300)
+cluster7.markers <- FindMarkers(cancer.cells, ident.1 = 7)
+   #manually select those markers use excel (fold change > 1.5)
+library(clusterProfiler)
+library(org.Hs.eg.db)
+genelist<-bitr(cluster7.markers$X,fromType = "SYMBOL",toType = "ENTREZID",OrgDb = org.Hs.eg.db)
+kegg<-enrichKEGG(gene = genelist$ENTREZID,organism = "hsa",keyType = "kegg",pvalueCutoff = 0.05,pAdjustMethod = "fdr",qvalueCutoff = 0.01)
+dotplot(kegg,showCategory=20)->p
+ggsave("dotplot.jpg",p,width = 6,height = 5,dpi = 300)

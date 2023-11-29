@@ -1,0 +1,17 @@
+PTall<-c(PT1,PT2,PT3,PT4,PT5,PT6)
+PTall<-lapply(X=PTall,FUN = function(x){
+  + x<-NormalizeData(x)
+  + x<-FindVariableFeatures(x,selection.method="vst",nfeatures=2000)
+  + })
+features <- SelectIntegrationFeatures(object.list = PTall)
+PTall <- lapply(X = PTall, FUN = function(x) {
+  +     x <- ScaleData(x, features = features, verbose = FALSE)
+  +     x <- RunPCA(x, features = features, verbose = FALSE)
+  + })
+anchors <- FindIntegrationAnchors(object.list = PTall, anchor.features = features, reduction = "rpca")
+cancercombined <- IntegrateData(anchorset = anchors)
+cancercombined<-ScaleData(cancercombined,verbose = FALSE)
+cancercombined<-RunPCA(cancercombined,npcs = 30,verbose = FALSE)
+cancercombined<-RunUMAP(cancercombined,reduction = "pca",dims = 1:30)
+cancercombined<-FindNeighbors(cancercombined,reduction = "pca",dims = 1:30)
+cancercombined<-FindClusters(cancercombined,resolution = 0.5)
